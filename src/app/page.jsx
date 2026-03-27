@@ -3,40 +3,76 @@ import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
 
 function AudioPlayer() {
-  const audioRef = useRef(null)
+  const playerRef = useRef(null)
+  const containerRef = useRef(null)
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
+  const intervalRef = useRef(null)
 
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
+    const initPlayer = () => {
+      playerRef.current = new window.YT.Player(containerRef.current, {
+        videoId: 'y6Ooy6dsCI8',
+        playerVars: { controls: 0, disablekb: 1, fs: 0 },
+        events: {
+          onReady: (e) => {
+            setDuration(e.target.getDuration())
+          },
+          onStateChange: (e) => {
+            if (e.data === window.YT.PlayerState.PLAYING) {
+              setPlaying(true)
+              intervalRef.current = setInterval(() => {
+                setProgress(playerRef.current.getCurrentTime())
+              }, 500)
+            }
+            if (e.data === window.YT.PlayerState.PAUSED || e.data === window.YT.PlayerState.ENDED) {
+              setPlaying(false)
+              clearInterval(intervalRef.current)
+            }
+            if (e.data === window.YT.PlayerState.ENDED) {
+              setProgress(0)
+            }
+          },
+        },
+      })
+    }
 
-    audio.play().then(() => setPlaying(true)).catch(() => {})
+    if (window.YT && window.YT.Player) {
+      // API already loaded (e.g. returning from gallery)
+      initPlayer()
+    } else {
+      // First load — inject script and wait for callback
+      if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+        const tag = document.createElement('script')
+        tag.src = 'https://www.youtube.com/iframe_api'
+        document.body.appendChild(tag)
+      }
+      window.onYouTubeIframeAPIReady = initPlayer
+    }
 
-    const onTimeUpdate = () => setProgress(audio.currentTime)
-    const onLoaded = () => setDuration(audio.duration)
-
-    audio.addEventListener('timeupdate', onTimeUpdate)
-    audio.addEventListener('loadedmetadata', onLoaded)
     return () => {
-      audio.removeEventListener('timeupdate', onTimeUpdate)
-      audio.removeEventListener('loadedmetadata', onLoaded)
+      clearInterval(intervalRef.current)
+      // Destroy player on unmount to avoid stale refs
+      if (playerRef.current?.destroy) {
+        playerRef.current.destroy()
+        playerRef.current = null
+      }
     }
   }, [])
 
   const togglePlay = () => {
-    const audio = audioRef.current
-    if (!audio) return
-    if (playing) { audio.pause(); setPlaying(false) }
-    else { audio.play(); setPlaying(true) }
+    const p = playerRef.current
+    if (!p) return
+    if (playing) p.pauseVideo()
+    else p.playVideo()
   }
 
   const seek = (e) => {
-    const audio = audioRef.current
-    if (!audio || !duration) return
+    const p = playerRef.current
+    if (!p || !duration) return
     const rect = e.currentTarget.getBoundingClientRect()
-    audio.currentTime = ((e.clientX - rect.left) / rect.width) * duration
+    p.seekTo(((e.clientX - rect.left) / rect.width) * duration, true)
   }
 
   const fmt = (s) => {
@@ -46,7 +82,9 @@ function AudioPlayer() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-stone-900/95 backdrop-blur border-t border-stone-700 px-6 py-3 flex items-center gap-4">
-      <audio ref={audioRef} src="/trumpet.mp4" />
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: 1, height: 1 }}>
+        <div ref={containerRef} />
+      </div>
 
       <button
         onClick={togglePlay}
@@ -68,12 +106,9 @@ function AudioPlayer() {
         <p className="text-xs text-stone-500 leading-none">{fmt(progress)} / {fmt(duration)}</p>
       </div>
 
-      <div
-        className="flex-1 h-1 bg-stone-700 rounded-full cursor-pointer"
-        onClick={seek}
-      >
+      <div className="flex-1 h-1 bg-stone-700 rounded-full cursor-pointer" onClick={seek}>
         <div
-          className="h-full bg-orange-500 rounded-full"
+          className="h-full bg-orange-500 rounded-full transition-all"
           style={{ width: duration ? `${(progress / duration) * 100}%` : '0%' }}
         />
       </div>
@@ -88,7 +123,6 @@ export default function Home() {
     <>
       <main className="min-h-screen bg-stone-950 text-stone-100 pb-16">
 
-        {/* Nav */}
         <nav className="flex justify-between items-center px-10 py-6 border-b border-stone-800">
           <span className="text-sm tracking-widest uppercase text-stone-400">Little Bucks</span>
           <Link href="/gallery" className="text-sm tracking-widest uppercase text-stone-400 hover:text-white transition-colors">
@@ -96,7 +130,6 @@ export default function Home() {
           </Link>
         </nav>
 
-        {/* Hero — name + photo */}
         <section className="px-10 py-20 flex flex-col md:flex-row md:items-center gap-12 border-b border-stone-800">
           <div className="flex-1">
             <p className="text-xs tracking-widest uppercase text-orange-400 mb-4">Est. 2010 · Age 15</p>
@@ -107,13 +140,11 @@ export default function Home() {
               and intangible atmosphere. Exceptionally dedicated. Exceptionally broke.
             </p>
           </div>
-
           <div className="w-full md:w-72 aspect-square bg-stone-800 rounded-sm overflow-hidden shrink-0">
             <img src="/image50.jpg" alt="Gio Lyons" className="w-full h-full object-cover" />
           </div>
         </section>
 
-        {/* Roles */}
         <section className="px-10 py-16 border-b border-stone-800">
           <p className="text-xs tracking-widest uppercase text-stone-500 mb-10">Positions Held</p>
           <div className="grid md:grid-cols-3 gap-px bg-stone-800">
@@ -130,7 +161,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Athletics */}
         <section className="px-10 py-16 border-b border-stone-800">
           <p className="text-xs tracking-widest uppercase text-stone-500 mb-10">Athletics</p>
           <div className="flex flex-col sm:flex-row gap-12">
@@ -145,7 +175,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Trumpet note */}
         <section className="px-10 py-16">
           <p className="text-xs tracking-widest uppercase text-stone-500 mb-4">Featured Performance</p>
           <p className="text-stone-300 text-lg italic max-w-xl">
@@ -154,7 +183,6 @@ export default function Home() {
           </p>
         </section>
 
-        {/* Footer */}
         <footer className="px-10 py-8 border-t border-stone-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <span className="text-stone-600 text-xs">© {new Date().getFullYear()} Giovanni "Little Bucks" Lyons</span>
           <span className="text-stone-600 text-xs italic">Rates negotiable. Please.</span>
