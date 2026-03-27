@@ -39,10 +39,8 @@ function AudioPlayer() {
     }
 
     if (window.YT && window.YT.Player) {
-      // API already loaded (e.g. returning from gallery)
       initPlayer()
     } else {
-      // First load — inject script and wait for callback
       if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
         const tag = document.createElement('script')
         tag.src = 'https://www.youtube.com/iframe_api'
@@ -53,7 +51,6 @@ function AudioPlayer() {
 
     return () => {
       clearInterval(intervalRef.current)
-      // Destroy player on unmount to avoid stale refs
       if (playerRef.current?.destroy) {
         playerRef.current.destroy()
         playerRef.current = null
@@ -119,19 +116,51 @@ function AudioPlayer() {
 }
 
 export default function Home() {
+  useEffect(() => {
+    // Dynamically load AOS
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://unpkg.com/aos@2.3.4/dist/aos.css'
+    document.head.appendChild(link)
+
+    const script = document.createElement('script')
+    script.src = 'https://unpkg.com/aos@2.3.4/dist/aos.js'
+    script.onload = () => {
+      window.AOS.init({
+        duration: 700,
+        easing: 'ease-out-quart',
+        once: true,
+        offset: 60,
+      })
+    }
+    document.body.appendChild(script)
+  }, [])
+
+  const roles = [
+    { title: 'Toilet Cleaner', desc: 'Senior Specialist. Transforms the unthinkable into the immaculate with quite a bit of complaint.' },
+    { title: 'Box Cutter', desc: 'Lead Operative. Clean lines, zero hesitation, more experience with boxes than bank accounts.' },
+    { title: 'Vibe Manager', desc: 'Director of Atmosphere. Self-taught. Largely unrecognized. The results speak for themselves.' },
+  ]
+
   return (
     <>
       <main className="min-h-screen bg-stone-950 text-stone-100 pb-16">
 
-        <nav className="flex justify-between items-center px-10 py-6 border-b border-stone-800">
+        {/* Nav — slides down */}
+        <nav
+          data-aos="fade-down"
+          data-aos-duration="600"
+          className="flex justify-between items-center px-10 py-6 border-b border-stone-800"
+        >
           <span className="text-sm tracking-widest uppercase text-stone-400">Little Bucks</span>
           <Link href="/gallery" className="text-sm tracking-widest uppercase text-stone-400 hover:text-white transition-colors">
             Gallery →
           </Link>
         </nav>
 
+        {/* Hero — text fades left, image fades right */}
         <section className="px-10 py-20 flex flex-col md:flex-row md:items-center gap-12 border-b border-stone-800">
-          <div className="flex-1">
+          <div className="flex-1" data-aos="fade-right" data-aos-delay="100">
             <p className="text-xs tracking-widest uppercase text-orange-400 mb-4">Est. 2010 · Age 15</p>
             <h1 className="text-7xl md:text-8xl font-bold tracking-tight leading-none mb-2">Gio Lyons</h1>
             <h2 className="text-2xl text-stone-400 italic mb-8">"Little Bucks"</h2>
@@ -140,20 +169,31 @@ export default function Home() {
               and intangible atmosphere. Exceptionally dedicated. Exceptionally broke.
             </p>
           </div>
-          <div className="w-full md:w-72 aspect-square bg-stone-800 rounded-sm overflow-hidden shrink-0">
+          <div
+            data-aos="fade-left"
+            data-aos-delay="200"
+            className="w-full md:w-72 aspect-square bg-stone-800 rounded-sm overflow-hidden shrink-0"
+          >
             <img src="/image50.jpg" alt="Gio Lyons" className="w-full h-full object-cover" />
           </div>
         </section>
 
+        {/* Roles — staggered fade up */}
         <section className="px-10 py-16 border-b border-stone-800">
-          <p className="text-xs tracking-widest uppercase text-stone-500 mb-10">Positions Held</p>
+          <p
+            data-aos="fade-up"
+            className="text-xs tracking-widest uppercase text-stone-500 mb-10"
+          >
+            Positions Held
+          </p>
           <div className="grid md:grid-cols-3 gap-px bg-stone-800">
-            {[
-              { title: 'Toilet Cleaner', desc: 'Senior Specialist. Transforms the unthinkable into the immaculate with quite a bit of complaint.' },
-              { title: 'Box Cutter', desc: 'Lead Operative. Clean lines, zero hesitation, more experience with boxes than bank accounts.' },
-              { title: 'Vibe Manager', desc: 'Director of Atmosphere. Self-taught. Largely unrecognized. The results speak for themselves.' },
-            ].map(role => (
-              <div key={role.title} className="bg-stone-950 p-8">
+            {roles.map((role, i) => (
+              <div
+                key={role.title}
+                data-aos="fade-up"
+                data-aos-delay={i * 100}
+                className="bg-stone-950 p-8"
+              >
                 <h3 className="text-lg font-semibold mb-3">{role.title}</h3>
                 <p className="text-stone-400 text-sm leading-relaxed">{role.desc}</p>
               </div>
@@ -161,21 +201,28 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Athletics — fade up staggered */}
         <section className="px-10 py-16 border-b border-stone-800">
-          <p className="text-xs tracking-widest uppercase text-stone-500 mb-10">Athletics</p>
+          <p
+            data-aos="fade-up"
+            className="text-xs tracking-widest uppercase text-stone-500 mb-10"
+          >
+            Athletics
+          </p>
           <div className="flex flex-col sm:flex-row gap-12">
-            <div>
+            <div data-aos="fade-up" data-aos-delay="100">
               <h3 className="text-lg font-semibold mb-2">Mountain Biking</h3>
               <p className="text-stone-400 text-sm max-w-xs">Conquers trails with reckless enthusiasm and a bike held together by hope.</p>
             </div>
-            <div>
+            <div data-aos="fade-up" data-aos-delay="200">
               <h3 className="text-lg font-semibold mb-2">Distance Running</h3>
               <p className="text-stone-400 text-sm max-w-xs">Runs primarily because transportation costs money. Poverty as cardio.</p>
             </div>
           </div>
         </section>
 
-        <section className="px-10 py-16">
+        {/* Featured performance — fade up */}
+        <section className="px-10 py-16" data-aos="fade-up">
           <p className="text-xs tracking-widest uppercase text-stone-500 mb-4">Featured Performance</p>
           <p className="text-stone-300 text-lg italic max-w-xl">
             Gio performing live on trumpet — proof that the vibe extends well beyond the workplace.
@@ -183,7 +230,12 @@ export default function Home() {
           </p>
         </section>
 
-        <footer className="px-10 py-8 border-t border-stone-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        {/* Footer — fade in */}
+        <footer
+          data-aos="fade-up"
+          data-aos-delay="100"
+          className="px-10 py-8 border-t border-stone-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
+        >
           <span className="text-stone-600 text-xs">© {new Date().getFullYear()} Giovanni "Little Bucks" Lyons</span>
           <span className="text-stone-600 text-xs italic">Rates negotiable. Please.</span>
         </footer>
