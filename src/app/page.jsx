@@ -216,7 +216,7 @@ export default function Home() {
             </div>
             <div data-aos="fade-up" data-aos-delay="200">
               <h3 className="text-lg font-semibold mb-2">Distance Running</h3>
-              <p className="text-stone-400 text-sm max-w-xs">Runs primarily because transportation costs money. Poverty as cardio.</p>
+              <p className="text-stone-400 text-sm max-w-xs">Runs primarily because transportation costs money. Poverty is cardio.</p>
             </div>
           </div>
         </section>
