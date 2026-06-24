@@ -4,6 +4,7 @@ import Link from 'next/link'
 
 const photos = [
   { src: '/image1.jpg',  caption: '' },
+  { src: '/6245.jpg', caption: '' },
   { src: '/image2.jpg',  caption: '' },
   { src: '/image3.jpg',  caption: '' },
   { src: '/image4.jpg',  caption: '' },
@@ -17,6 +18,7 @@ const photos = [
   { src: '/image12.jpg', caption: '' },
   { src: '/image13.jpg', caption: '' },
   { src: '/image14.jpg', caption: '' },
+  { src: '/6244.jpg', caption: '' },
 ]
 
 export default function Gallery() {
