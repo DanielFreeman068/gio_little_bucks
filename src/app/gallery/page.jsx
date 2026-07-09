@@ -6,6 +6,7 @@ const photos = [
   { src: '/image1.jpg',  caption: '' },
   { src: '/6245.jpg', caption: '' },
   { src: '/image2.jpg',  caption: '' },
+  { src: '/image15.jpg',  caption: '' },
   { src: '/image3.jpg',  caption: '' },
   { src: '/image4.jpg',  caption: '' },
   { src: '/image5.jpg',  caption: '' },
